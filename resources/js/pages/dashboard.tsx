@@ -3,9 +3,6 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import CashierDashboard from '@/pages/Dashboard/CashierDashboard';
-import TechnicianDashboard from '@/pages/Dashboard/TechnicianDashboard';
-import StockManagerDashboard from '@/pages/Dashboard/StockManagerDashboard';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,24 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard({ stats, role }: { stats?: any, role?: string }) {
-    if (stats) {
-        return (
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Dashboard" />
-                <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                    {role === 'technician' ? (
-                        <TechnicianDashboard stats={stats} />
-                    ) : role === 'stock_manager' ? (
-                        <StockManagerDashboard stats={stats} />
-                    ) : (
-                        <CashierDashboard stats={stats} />
-                    )}
-                </div>
-            </AppLayout>
-        );
-    }
-
+export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
