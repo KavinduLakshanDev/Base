@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printer Stock In Hand Report</title>
+    <style>
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            font-size: 10px;
+            background-color: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .report-info {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .report-info td {
+            padding: 2px 0;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .table th {
+            background-color: #f2f2f2;
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9px;
+        }
+        
+        .table td {
+            border: 1px solid #000;
+            padding: 3px;
+            font-size: 8px;
+            vertical-align: middle;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-style: italic;
+            font-size: 9px;
+        }
+
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .uppercase { text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    @php
+        // Determine company (fall back to auth user's company or first record)
+        $company = $company ?? null;
+        if (function_exists('auth') && auth()->check()) {
+            $company = $company ?? \App\Models\Company::where('company_code', auth()->user()->company_code)->first();
+        }
+        $company = $company ?? \App\Models\Company::first();
+
+        // Prefer PNG versions when available; create placeholders to avoid missing file errors.
+        $companyCode = strtoupper($company->company_code ?? 'VIS001');
+        $vismassPng = public_path('images/vismass-logo.png');
+        $malibuPng  = public_path('images/malibu-logo.png');
+        $placeholderPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAQAAAAAYLlVAAAAHklEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA4BsMCgABxIoV2AAAAAElFTkSuQmCC');
+        if (!file_exists($vismassPng)) {
+            @file_put_contents($vismassPng, $placeholderPng);
+        }
+        if (!file_exists($malibuPng)) {
+            @file_put_contents($malibuPng, $placeholderPng);
+        }
+
+        $logoUrl = asset('images/vismass-logo.png');
+        if ($companyCode === 'MAL001') {
+            $logoUrl = asset('images/malibu-logo.png');
+        }
+    @endphp
+
+    <div class="header">
+        <div style="margin-bottom: 8px;">
+            <img src="{{ $logoUrl }}" alt="{{ $company->name ?? 'Company' }}" style="height: 40px;" />
+        </div>
+        <div class="title">{{ $company->name ?? 'VISION COPIER' }}</div>
+        <div style="font-size: 14px;">PRINTER STOCK IN HAND REPORT</div>
+    </div>
+
+    <table class="report-info">
+        <tr>
+            <td width="15%"><strong>Run Date:</strong></td>
+            <td>{{ $date }}</td>
+            <td width="15%" class="text-right"><strong>Page:</strong></td>
+            <td width="5%" class="text-right">1 / 1</td>
+        </tr>
+    </table>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="12%">BRAND</th>
+                <th width="15%">MODEL</th>
+                <th width="18%">SERIAL NUMBER</th>
+                <th width="18%">BATCH / GRN</th>
+                <th width="17%">SECTION</th>
+                <th width="10%">WARRANTY</th>
+                <th width="10%" class="text-right">STOCK</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($stockData as $row)
+                <tr>
+                    <td class="uppercase">{{ $row->brand }}</td>
+                    <td>{{ $row->model }}</td>
+                    <td class="font-bold">{{ $row->serial_number }}</td>
+                    <td>{{ $row->batch_no }}</td>
+                    <td>{{ $row->section_name }}</td>
+                    <td>{{ $row->warranty }}</td>
+                    <td class="text-right font-bold">{{ number_format($row->balance, 0) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px;">No printer stock data found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generated by System on {{ date('Y-m-d H:i:s') }}
+    </div>
+</body>
+</html>
